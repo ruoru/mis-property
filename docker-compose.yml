@@ -1,0 +1,59 @@
+version: "3"
+services:
+  nginx-container:
+    image: nginx:latest
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx.conf.d/:/etc/nginx/conf.d/
+    links:
+      - mis-property-web-container
+      - mis-property-app-container
+    depends_on:
+      - mis-property_mysql
+  
+    links:
+      - mis-property_mysql
+
+  mis-property-web-container:
+    image: mis-property-web:latest
+    # ports:
+    #   - 8000:80
+    build:
+      context: ./mis-property-web/
+      dockerfile: Dockerfile
+    # volumes:
+    #   - ./mis-property-web/build/:/webroot/mis-property-web
+    # depends_on:
+    #   - mis-property-app
+    # links:
+    #   - mis-property-app
+
+  mis-property-app-container:
+    image: mis-property-app:latest
+    build:
+      context: ./mis-property-app/
+      dockerfile: Dockerfile
+    ports:
+      - 9000:9000
+    # volumes:
+    #   - ./mis-property-app/:/approot/
+    # depends_on:
+    #   - mis-property_mysql
+    #   - mis-property_redis
+    # links:
+    #   - mis-property_mysql
+    #   - mis-property_redis
+  mis-property_mysql:
+    image: mysql:5.7
+    volumes:
+      - ./mis-property-deploy/mysql/data:/var/lib/mysql
+      - ./mis-property-deploy/mysql/conf/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mis-property-deploy/mysql/conf/my.cnf:/etc/mysql/my.cnf
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mis-property
+      TZ: Asia/Shanghai
+
